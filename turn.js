@@ -49,7 +49,7 @@ class TurnIntegration {
     const body = Buffer.from(req.body).toString();
     if (this.secure) {
       const signature = req.get("X-Turn-Hook-Signature");
-      const expectedSignature = this.sign(req.body);
+      const expectedSignature = this.sign(body);
       if (signature === expectedSignature) {
         req.body = JSON.parse(body);
         next();
@@ -95,18 +95,16 @@ class TurnIntegration {
           debug("Doing message callback");
           resp.json({
             actions: app.actions.reduce((acc, callback, parentIndex) => {
-              return Promise.all(callback(req.body)).then(results =>
-                results.reduce((acc, action, index) => {
-                  const actionId = `act-${parentIndex}-${index}`;
-                  acc[actionId] = {
-                    description: action.description,
-                    payload: action.payload,
-                    options: action.options,
-                    url: `/action/${parentIndex}/${index}`
-                  };
-                  return acc;
-                }, acc)
-              );
+              return callback(req.body).reduce((acc, action, index) => {
+                const actionId = `act-${parentIndex}-${index}`;
+                acc[actionId] = {
+                  description: action.description,
+                  payload: action.payload,
+                  options: action.options,
+                  url: `/action/${parentIndex}/${index}`
+                };
+                return acc;
+              }, acc);
             }, {}),
             suggested_responses: app.suggestions.reduce((acc, callback) => {
               return [...acc, ...callback(req.body)];
