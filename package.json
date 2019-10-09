@@ -4,11 +4,19 @@
   "description": "Tools for building Turn.io integrations with Javascript",
   "main": "server.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "mocha -R spec spec.js"
   },
   "author": "Simon de Haan <simon@turn.io>",
   "license": "MIT",
   "dependencies": {
+    "body-parser": "^1.19.0",
+    "debug": "^4.1.1",
     "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^6.2.1",
+    "supertest": "^4.0.2"
   }
 }
