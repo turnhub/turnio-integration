@@ -1,7 +1,7 @@
 var request = require("supertest");
 var crypto = require("crypto");
 var assert = require("chai").assert;
-var TurnIntegration = require("./turn");
+var TurnIntegration = require("./index");
 
 describe("turn integration app", function() {
   let emptyServer;
@@ -17,7 +17,6 @@ describe("turn integration app", function() {
       .toString("base64");
 
   beforeEach(function() {
-    const TurnIntegration = require("./turn");
     emptyServer = new TurnIntegration(secret).serve();
     configuredServer = new TurnIntegration(secret)
       .ignoreSignature()
@@ -115,12 +114,14 @@ describe("turn integration app", function() {
             {
               title: "Language",
               code: "ctx-0",
-              type: "table"
+              type: "table",
+              icon: "none"
             },
             {
               title: "A list of things",
               code: "ctx-1",
-              type: "ordered-list"
+              type: "ordered-list",
+              icon: "none"
             }
           ]);
         });

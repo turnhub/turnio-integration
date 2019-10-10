@@ -1,4 +1,4 @@
-const TurnIntegration = require("./turn");
+const TurnIntegration = require("./index");
 
 const app = new TurnIntegration(process.env.SECRET)
   .context("Language", "table", message => ({
@@ -36,4 +36,6 @@ const app = new TurnIntegration(process.env.SECRET)
   ])
   .serve();
 
-module.exports = app;
+const port = process.env.PORT || 3000;
+
+app.listen(port, () => console.log(`Example app listening on port ${port}!`));
