@@ -74,7 +74,7 @@ class TurnIntegration {
         const actionsCallback = app.actions[parentIndex];
         const action = actionsCallback(message)[index];
         debug(`Completed action callback for "${action.description}"`);
-        resp.json(action.callback({ message, option, payload }));
+        resp.json(action.callback({ message, option, payload }, resp));
       })
       .post("/", (req, resp, next) => {
         if (req.body.handshake === true) {
