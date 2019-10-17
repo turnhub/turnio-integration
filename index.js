@@ -95,7 +95,7 @@ class TurnIntegration {
           debug("Doing message callback");
           resp.json({
             actions: app.actions.reduce((acc, callback, parentIndex) => {
-              return callback(req.body).reduce((acc, action, index) => {
+              return callback(req.body, resp).reduce((acc, action, index) => {
                 const actionId = `act-${parentIndex}-${index}`;
                 acc[actionId] = {
                   description: action.description,
@@ -107,10 +107,10 @@ class TurnIntegration {
               }, acc);
             }, {}),
             suggested_responses: app.suggestions.reduce((acc, callback) => {
-              return [...acc, ...callback(req.body)];
+              return [...acc, ...callback(req.body, resp)];
             }, []),
             context_objects: app.contexts.reduce((acc, ctx, index) => {
-              acc[`ctx-${index}`] = ctx.callback(req.body);
+              acc[`ctx-${index}`] = ctx.callback(req.body, resp);
               return acc;
             }, {})
           });
