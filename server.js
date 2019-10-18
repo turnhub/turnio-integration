@@ -1,16 +1,16 @@
 const TurnIntegration = require("./index");
 
 const app = new TurnIntegration(process.env.SECRET)
-  .context("Language", "table", message => ({
+  .context("Language", "table", ({ chat, messages }) => ({
     Language: "English",
     Confidence: "Very high"
   }))
-  .context("A list of things", "ordered-list", message => [
+  .context("A list of things", "ordered-list", ({ chat, messages }) => [
     "first item",
     "second item",
     "third item"
   ])
-  .suggest(message => [
+  .suggest(({ chat, messages }) => [
     {
       type: "TEXT",
       title: "Password reset",
@@ -18,7 +18,7 @@ const app = new TurnIntegration(process.env.SECRET)
       confidence: 0.4
     }
   ])
-  .action(message => [
+  .action(({ chat, messages }) => [
     {
       description: "Change Language",
       payload: {
@@ -29,8 +29,13 @@ const app = new TurnIntegration(process.env.SECRET)
         eng_ZA: "English",
         zul_ZA: "Zulu"
       },
-      callback: ({ message, option, payload: { really } }) => {
+      callback: ({ message, option, payload: { really } }, resp) => {
         console.log({ message, option, really });
+        // Notify the frontend to refresh the context by setting
+        // the response header
+        resp.setHeader("X-Turn-Integration-Refresh", "true");
+        // this is return as JSON in the HTTP response
+        return { ok: "done" };
       }
     }
   ])
