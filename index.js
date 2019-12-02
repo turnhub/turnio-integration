@@ -3,6 +3,13 @@ const crypto = require("crypto");
 const bodyParser = require("body-parser");
 var debug = require("debug")("turn");
 
+const log = label => {
+  return val => {
+    debug(label);
+    return val;
+  };
+};
+
 class TurnIntegration {
   constructor(secret) {
     this.secret = secret;
@@ -103,38 +110,46 @@ class TurnIntegration {
                 index
               }));
             })
-          ).then(results =>
-            results.reduce((acc, { title, type, data, index }) => {
-              acc[`ctx-${index}`] = data;
-              return acc;
-            }, {})
-          );
+          )
+            .then(results =>
+              results.reduce((acc, { title, type, data, index }) => {
+                acc[`ctx-${index}`] = data;
+                return acc;
+              }, {})
+            )
+            .then(log("context objects generated"));
 
           const fetchActions = Promise.all(
             app.actions.map((callback, parentIndex) => {
-              return Promise.resolve(callback(req.body, resp)).then(data => ({
-                data,
-                parentIndex
-              }));
+              return Promise.resolve(callback(req.body, resp)).then(
+                actions => ({
+                  actions,
+                  parentIndex
+                })
+              );
             })
-          ).then(results =>
-            results.reduce((acc, { callback, parentIndex }, index) => {
-              const actionId = `act-${parentIndex}-${index}`;
-              acc[actionId] = {
-                description: action.description,
-                payload: action.payload,
-                options: action.options,
-                url: `/action/${parentIndex}/${index}`
-              };
-              return acc;
-            }, {})
-          );
+          )
+            .then(results => {
+              return results.reduce((acc, { actions, parentIndex }) => {
+                return actions.reduce((acc, action, index) => {
+                  const actionId = `act-${parentIndex}-${index}`;
+                  acc[actionId] = {
+                    description: action.description,
+                    payload: action.payload,
+                    options: action.options,
+                    url: `/action/${parentIndex}/${index}`
+                  };
+                  return acc;
+                }, {});
+              }, {});
+            })
+            .then(log("actions generated"));
 
           const fetchSuggestedResponses = Promise.all(
             app.suggestions
               .map(callback => callback(req.body, resp))
               .reduce((acc, actions) => acc.concat(actions), [])
-          );
+          ).then(log("suggested responses generated"));
 
           return Promise.all([
             fetchActions,
