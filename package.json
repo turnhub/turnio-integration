@@ -6,7 +6,8 @@
   "scripts": {
     "serve": "node lib/server.js",
     "test": "mocha -R spec src/spec.js",
-    "build": "babel --delete-dir-on-start src -d lib"
+    "build": "babel --delete-dir-on-start src -d lib",
+    "prepare": "yarn build"
   },
   "author": "Simon de Haan <simon@turn.io>",
   "license": "MIT",
