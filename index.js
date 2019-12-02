@@ -93,26 +93,59 @@ class TurnIntegration {
           });
         } else {
           debug("Doing message callback");
-          resp.json({
-            actions: app.actions.reduce((acc, callback, parentIndex) => {
-              return callback(req.body, resp).reduce((acc, action, index) => {
-                const actionId = `act-${parentIndex}-${index}`;
-                acc[actionId] = {
-                  description: action.description,
-                  payload: action.payload,
-                  options: action.options,
-                  url: `/action/${parentIndex}/${index}`
-                };
-                return acc;
-              }, acc);
-            }, {}),
-            suggested_responses: app.suggestions.reduce((acc, callback) => {
-              return [...acc, ...callback(req.body, resp)];
-            }, []),
-            context_objects: app.contexts.reduce((acc, ctx, index) => {
-              acc[`ctx-${index}`] = ctx.callback(req.body, resp);
+
+          const fetchContextObjects = Promise.all(
+            app.contexts.map(({ title, type, callback }, index) => {
+              return Promise.resolve(callback(req.body, resp)).then(data => ({
+                title,
+                type,
+                data,
+                index
+              }));
+            })
+          ).then(results =>
+            results.reduce((acc, { title, type, data, index }) => {
+              acc[`ctx-${index}`] = data;
               return acc;
             }, {})
+          );
+
+          const fetchActions = Promise.all(
+            app.actions.map((callback, parentIndex) => {
+              return Promise.resolve(callback(req.body, resp)).then(data => ({
+                data,
+                parentIndex
+              }));
+            })
+          ).then(results =>
+            results.reduce((acc, { callback, parentIndex }, index) => {
+              const actionId = `act-${parentIndex}-${index}`;
+              acc[actionId] = {
+                description: action.description,
+                payload: action.payload,
+                options: action.options,
+                url: `/action/${parentIndex}/${index}`
+              };
+              return acc;
+            }, {})
+          );
+
+          const fetchSuggestedResponses = Promise.all(
+            app.suggestions
+              .map(callback => callback(req.body, resp))
+              .reduce((acc, actions) => acc.concat(actions), [])
+          );
+
+          return Promise.all([
+            fetchActions,
+            fetchSuggestedResponses,
+            fetchContextObjects
+          ]).then(([actions, suggestedResponses, contextObjects]) => {
+            resp.json({
+              actions: actions,
+              suggested_responses: suggestedResponses,
+              context_objects: contextObjects
+            });
           });
         }
       });
