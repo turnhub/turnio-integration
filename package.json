@@ -2,15 +2,15 @@
   "name": "@turnio/integration",
   "version": "1.1.1",
   "description": "Tools for building Turn.io integrations with Javascript",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
-    "serve": "node server.js",
-    "test": "mocha -R spec spec.js"
+    "serve": "node lib/server.js",
+    "test": "mocha -R spec src/spec.js",
+    "build": "babel --delete-dir-on-start src -d lib"
   },
   "author": "Simon de Haan <simon@turn.io>",
   "license": "MIT",
   "dependencies": {
-    "@turnio/integration": "^1.0.0",
     "body-parser": "^1.19.0",
     "debug": "^4.1.1",
     "express": "^4.17.1"
@@ -20,6 +20,10 @@
     "url": "https://github.com/turnhub/turnio-integration"
   },
   "devDependencies": {
+    "@babel/cli": "^7.7.4",
+    "@babel/core": "^7.7.4",
+    "@babel/plugin-proposal-class-properties": "^7.7.4",
+    "@babel/preset-env": "^7.7.4",
     "chai": "^4.2.0",
     "mocha": "^6.2.1",
     "supertest": "^4.0.2"
