@@ -1,6 +1,6 @@
 {
   "name": "@turnio/integration",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Tools for building Turn.io integrations with Javascript",
   "main": "lib/index.js",
   "scripts": {
