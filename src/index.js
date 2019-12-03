@@ -63,7 +63,13 @@ class TurnIntegration {
   hasSuggestions = () => this.suggestions.length > 0;
 
   verifySignature = (req, resp, next) => {
-    const body = Buffer.from(req.body).toString();
+    /**
+     * If we're running as a google cloud function the raw
+     * body is stored in the req.rawBody attribute. For all
+     * other usecases we can use the result of the body-parser
+     * middleware that sticks the raw buffer in req.body
+     */
+    const body = Buffer.from(req.rawBody || req.body).toString();
     if (this.secure) {
       const signature = req.get("X-Turn-Hook-Signature");
       const expectedSignature = this.sign(body);
