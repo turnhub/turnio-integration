@@ -4,8 +4,10 @@
   "description": "Tools for building Turn.io integrations with Javascript",
   "main": "lib/index.js",
   "scripts": {
+    "pretest": "yarn build",
+    "test": "mocha -R spec lib/spec.js",
+    "preserve": "yarn build",
     "serve": "node lib/server.js",
-    "test": "mocha -R spec src/spec.js",
     "build": "babel --delete-dir-on-start src -d lib",
     "prepare": "yarn build"
   },

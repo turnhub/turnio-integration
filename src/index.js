@@ -17,7 +17,17 @@ class TurnIntegration {
     this.actions = [];
     this.suggestions = [];
     this.secure = true;
+    this._verbose = false;
   }
+
+  verbose = () => {
+    this._verbose = true;
+    return this;
+  };
+
+  log = value => {
+    if (this._verbose) debug(value);
+  };
 
   ignoreSignature = () => {
     this.secure = false;
@@ -69,11 +79,17 @@ class TurnIntegration {
     }
   };
 
+  logRequest = (req, resp, next) => {
+    this.log({ body: req.body, headers: req.headers });
+    next();
+  };
+
   serve = () => {
     const app = this;
     return express()
       .use(bodyParser.raw({ type: "application/json", inflate: true }))
       .use(app.verifySignature)
+      .use(app.logRequest)
       .post("/action/:parentIndex/:index", (req, resp, next) => {
         const parentIndex = parseInt(req.params.parentIndex);
         const index = parseInt(req.params.index);
