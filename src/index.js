@@ -18,6 +18,7 @@ class TurnIntegration {
     this.suggestions = [];
     this.secure = true;
     this._verbose = false;
+    this._pathPrefix = "";
   }
 
   verbose = () => {
@@ -92,6 +93,11 @@ class TurnIntegration {
     };
   };
 
+  pathPrefix = prefix => {
+    this._pathPrefix = prefix;
+    return this;
+  };
+
   serve = () => {
     const app = this;
     return express()
@@ -162,7 +168,7 @@ class TurnIntegration {
                     description: action.description,
                     payload: action.payload,
                     options: action.options,
-                    url: `/action/${parentIndex}/${index}`
+                    url: `${app._pathPrefix}action/${parentIndex}/${index}`
                   };
                   return acc;
                 }, {});
