@@ -20,7 +20,7 @@ describe("turn integration app", function() {
     emptyServer = new TurnIntegration(secret).serve();
     configuredServer = new TurnIntegration(secret)
       .ignoreSignature()
-      // .verbose()
+      .verbose()
       .context("Language", "table", message => ({
         Language: "English",
         Confidence: "Very high"

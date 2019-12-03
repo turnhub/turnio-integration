@@ -25,8 +25,8 @@ class TurnIntegration {
     return this;
   };
 
-  log = value => {
-    if (this._verbose) debug(value);
+  log = (prefix, value) => {
+    if (this._verbose) debug(prefix, value);
   };
 
   ignoreSignature = () => {
@@ -79,17 +79,20 @@ class TurnIntegration {
     }
   };
 
-  logRequest = (req, resp, next) => {
-    this.log({ body: req.body, headers: req.headers });
-    next();
+  logRequest = prefix => {
+    return (req, resp, next) => {
+      this.log(prefix, { body: req.body, headers: req.headers });
+      next();
+    };
   };
 
   serve = () => {
     const app = this;
     return express()
       .use(bodyParser.raw({ type: "application/json", inflate: true }))
+      .use(app.logRequest("before verify"))
       .use(app.verifySignature)
-      .use(app.logRequest)
+      .use(app.logRequest("after verify"))
       .post("/action/:parentIndex/:index", (req, resp, next) => {
         const parentIndex = parseInt(req.params.parentIndex);
         const index = parseInt(req.params.index);
