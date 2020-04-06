@@ -686,16 +686,6 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
-"@turnio/integration@^1.0.0":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@turnio/integration/-/integration-1.1.1.tgz#531c338f18fc4b9dbc01981e6bda79e6adee3c0b"
-  integrity sha512-cLfdkKK2OYqrABjE5G/E/Gjg915AGXt/2eU+mp/t4r3tyyl10xVinJOItxAnSUWuOKA3/8JIHpCslmqJJPrDmw==
-  dependencies:
-    "@turnio/integration" "^1.0.0"
-    body-parser "^1.19.0"
-    debug "^4.1.1"
-    express "^4.17.1"
-
 abbrev@1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/abbrev/-/abbrev-1.1.1.tgz#f8f2c887ad10bf67f634f005b6987fed3179aac8"
