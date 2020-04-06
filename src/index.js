@@ -3,8 +3,8 @@ const crypto = require("crypto");
 const bodyParser = require("body-parser");
 var debug = require("debug")("turn");
 
-const log = label => {
-  return val => {
+const log = (label) => {
+  return (val) => {
     debug(label);
     return val;
   };
@@ -35,7 +35,7 @@ class TurnIntegration {
     return this;
   };
 
-  sign = payload =>
+  sign = (payload) =>
     crypto
       .createHmac("sha256", Buffer.from(this.secret, "utf8"))
       .update(payload)
@@ -45,17 +45,17 @@ class TurnIntegration {
   context = (title, type, callback) => {
     this.contexts = [
       ...this.contexts,
-      { title: title, type: type, callback: callback }
+      { title: title, type: type, callback: callback },
     ];
     return this;
   };
 
-  suggest = callback => {
+  suggest = (callback) => {
     this.suggestions = [...this.suggestions, callback];
     return this;
   };
 
-  action = callback => {
+  action = (callback) => {
     this.actions = [...this.actions, callback];
     return this;
   };
@@ -86,14 +86,14 @@ class TurnIntegration {
     }
   };
 
-  logRequest = prefix => {
+  logRequest = (prefix) => {
     return (req, resp, next) => {
       this.log(prefix, { body: req.body, headers: req.headers });
       next();
     };
   };
 
-  pathPrefix = prefix => {
+  pathPrefix = (prefix) => {
     this._pathPrefix = prefix;
     return this;
   };
@@ -118,6 +118,7 @@ class TurnIntegration {
         if (req.body.handshake === true) {
           debug("Doing handshake");
           resp.json({
+            version: "1.0.0-alpha",
             capabilities: {
               actions: app.hasActions(),
               suggested_responses: app.hasSuggestions(),
@@ -125,24 +126,24 @@ class TurnIntegration {
                 title: ctx.title,
                 code: `ctx-${index}`,
                 type: ctx.type,
-                icon: "none"
-              }))
-            }
+                icon: "none",
+              })),
+            },
           });
         } else {
           debug("Doing message callback");
 
           const fetchContextObjects = Promise.all(
             app.contexts.map(({ title, type, callback }, index) => {
-              return Promise.resolve(callback(req.body, resp)).then(data => ({
+              return Promise.resolve(callback(req.body, resp)).then((data) => ({
                 title,
                 type,
                 data,
-                index
+                index,
               }));
             })
           )
-            .then(results =>
+            .then((results) =>
               results.reduce((acc, { title, type, data, index }) => {
                 acc[`ctx-${index}`] = data;
                 return acc;
@@ -153,14 +154,14 @@ class TurnIntegration {
           const fetchActions = Promise.all(
             app.actions.map((callback, parentIndex) => {
               return Promise.resolve(callback(req.body, resp)).then(
-                actions => ({
+                (actions) => ({
                   actions,
-                  parentIndex
+                  parentIndex,
                 })
               );
             })
           )
-            .then(results => {
+            .then((results) => {
               return results.reduce((acc, { actions, parentIndex }) => {
                 return actions.reduce((acc, action, index) => {
                   const actionId = `act-${parentIndex}-${index}`;
@@ -168,7 +169,7 @@ class TurnIntegration {
                     description: action.description,
                     payload: action.payload,
                     options: action.options,
-                    url: `${app._pathPrefix}action/${parentIndex}/${index}`
+                    url: `${app._pathPrefix}action/${parentIndex}/${index}`,
                   };
                   return acc;
                 }, {});
@@ -178,19 +179,19 @@ class TurnIntegration {
 
           const fetchSuggestedResponses = Promise.all(
             app.suggestions
-              .map(callback => callback(req.body, resp))
+              .map((callback) => callback(req.body, resp))
               .reduce((acc, actions) => acc.concat(actions), [])
           ).then(log("suggested responses generated"));
 
           return Promise.all([
             fetchActions,
             fetchSuggestedResponses,
-            fetchContextObjects
+            fetchContextObjects,
           ]).then(([actions, suggestedResponses, contextObjects]) => {
             resp.json({
               actions: actions,
               suggested_responses: suggestedResponses,
-              context_objects: contextObjects
+              context_objects: contextObjects,
             });
           });
         }
