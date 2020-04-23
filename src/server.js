@@ -3,31 +3,31 @@ const TurnIntegration = require("./index");
 const app = new TurnIntegration(process.env.SECRET)
   .context("Language", "table", ({ chat, messages }) => ({
     Language: "English",
-    Confidence: "Very high"
+    Confidence: "Very high",
   }))
   .context("A list of things", "ordered-list", ({ chat, messages }) => [
     "first item",
     "second item",
-    "third item"
+    "third item",
   ])
   .suggest(({ chat, messages }) => [
     {
       type: "TEXT",
       title: "Password reset",
       body: "To reset your password click the link on the login page.",
-      confidence: 0.4
-    }
+      confidence: 0.4,
+    },
   ])
   .action(({ chat, messages }) => [
     {
       description: "Change Language",
       payload: {
-        really: "yes"
+        really: "yes",
       },
       options: {
         afr_ZA: "Afrikaans",
         eng_ZA: "English",
-        zul_ZA: "Zulu"
+        zul_ZA: "Zulu",
       },
       callback: ({ message, option, payload: { really } }, resp) => {
         console.log({ message, option, really });
@@ -36,12 +36,12 @@ const app = new TurnIntegration(process.env.SECRET)
         resp.setHeader("X-Turn-Integration-Refresh", "true");
         // this is return as JSON in the HTTP response
         return { ok: "done" };
-      }
-    }
+      },
+    },
   ])
-  .webhook("some-hook", (req, resp, next)) => {
-    resp.send({ok: "some-custom-response"})
-  }
+  .webhook("some-hook", (req, resp, next) => {
+    resp.send({ ok: "some-custom-response" });
+  })
   .serve();
 
 const port = process.env.PORT || 3000;
