@@ -3,58 +3,61 @@ var crypto = require("crypto");
 var assert = require("chai").assert;
 var TurnIntegration = require("./index");
 
-describe("turn integration app", function() {
+describe("turn integration app", function () {
   let emptyServer;
   let configuredServer;
   let secret = "secret";
   let hmac;
 
-  const sign = payload =>
+  const sign = (payload) =>
     crypto
       .createHmac("sha256", Buffer.from(secret, "utf8"))
       .update(JSON.stringify(payload))
       .digest()
       .toString("base64");
 
-  beforeEach(function() {
+  beforeEach(function () {
     emptyServer = new TurnIntegration(secret).serve();
     configuredServer = new TurnIntegration(secret)
       .ignoreSignature()
       .pathPrefix("/")
       .verbose()
-      .context("Language", "table", message => ({
+      .context("Language", "table", (message) => ({
         Language: "English",
-        Confidence: "Very high"
+        Confidence: "Very high",
       }))
-      .context("A list of things", "ordered-list", message => [
+      .context("A list of things", "ordered-list", (message) => [
         "first item",
         "second item",
-        "third item"
+        "third item",
       ])
-      .suggest(message => [
+      .suggest((message) => [
         {
           type: "TEXT",
           title: "Password reset",
           body: "To reset your password click the link on the login page.",
-          confidence: 0.4
-        }
+          confidence: 0.4,
+        },
       ])
-      .action(message => [
+      .action((message) => [
         {
           description: "Change Language",
           payload: {
-            really: "yes"
+            really: "yes",
           },
           options: {
             afr_ZA: "Afrikaans",
             eng_ZA: "English",
-            zul_ZA: "Zulu"
+            zul_ZA: "Zulu",
           },
           callback: ({ payload: { really } }) => {
             return { really };
-          }
-        }
+          },
+        },
       ])
+      .webhook("my-webhook", (req, resp, next) => {
+        resp.send({ ok: "cool" });
+      })
       .serve();
   });
 
@@ -93,8 +96,8 @@ describe("turn integration app", function() {
           capabilities: {
             actions: false,
             suggested_responses: false,
-            context_objects: []
-          }
+            context_objects: [],
+          },
         });
     });
 
@@ -108,7 +111,7 @@ describe("turn integration app", function() {
         .set("X-Turn-Hook-Signature", sign(payload))
         .expect(200, (err, res) => {
           const {
-            capabilities: { actions, suggested_responses, context_objects }
+            capabilities: { actions, suggested_responses, context_objects },
           } = res.body;
           assert.ok(actions);
           assert.ok(suggested_responses);
@@ -117,14 +120,14 @@ describe("turn integration app", function() {
               title: "Language",
               code: "ctx-0",
               type: "table",
-              icon: "none"
+              icon: "none",
             },
             {
               title: "A list of things",
               code: "ctx-1",
               type: "ordered-list",
-              icon: "none"
-            }
+              icon: "none",
+            },
           ]);
         });
     });
@@ -143,13 +146,13 @@ describe("turn integration app", function() {
                 options: {
                   afr_ZA: "Afrikaans",
                   eng_ZA: "English",
-                  zul_ZA: "Zulu"
+                  zul_ZA: "Zulu",
                 },
                 payload: {
-                  really: "yes"
+                  really: "yes",
                 },
-                url: "/action/0/0"
-              }
+                url: "/action/0/0",
+              },
             },
             suggested_responses: [
               {
@@ -157,16 +160,16 @@ describe("turn integration app", function() {
                 title: "Password reset",
                 body:
                   "To reset your password click the link on the login page.",
-                confidence: 0.4
-              }
+                confidence: 0.4,
+              },
             ],
             context_objects: {
               "ctx-0": {
                 Language: "English",
-                Confidence: "Very high"
+                Confidence: "Very high",
               },
-              "ctx-1": ["first item", "second item", "third item"]
-            }
+              "ctx-1": ["first item", "second item", "third item"],
+            },
           });
         });
     });
@@ -176,8 +179,28 @@ describe("turn integration app", function() {
         .post("/action/0/0")
         .send({ message: "message", option: "foo", payload: { really: "yes" } })
         .expect(200, {
-          really: "yes"
+          really: "yes",
         });
+    });
+
+    it("should act on webhook callbacks", () => {
+      return request(configuredServer)
+        .post("/webhook/my-webhook")
+        .set("Content-Type", "application/json")
+        .set("X-Turn-Hook-Signature", sign({}))
+        .send({})
+        .expect(200, {
+          ok: "cool",
+        });
+    });
+
+    it("should 404 on non existent webhooks", () => {
+      return request(configuredServer)
+        .post("/webhook/this-does-not-exist")
+        .set("Content-Type", "application/json")
+        .set("X-Turn-Hook-Signature", sign({}))
+        .send({})
+        .expect(404, "Not Found");
     });
   });
 });

@@ -16,6 +16,7 @@ class TurnIntegration {
     this.contexts = [];
     this.actions = [];
     this.suggestions = [];
+    this.webhooks = [];
     this.secure = true;
     this._verbose = false;
     this._pathPrefix = "";
@@ -98,6 +99,11 @@ class TurnIntegration {
     return this;
   };
 
+  webhook = (path, callback) => {
+    this.webhooks = [...this.webhooks, { path, callback }];
+    return this;
+  };
+
   serve = () => {
     const app = this;
     return express()
@@ -113,6 +119,16 @@ class TurnIntegration {
         const action = actionsCallback(message)[index];
         debug(`Completed action callback for "${action.description}"`);
         resp.json(action.callback({ message, option, payload }, resp));
+      })
+      .post("/webhook/:path", (req, resp, next) => {
+        const webhook = app.webhooks.find(
+          ({ path }) => path === req.params.path
+        );
+        if (webhook) {
+          webhook.callback(req, resp, next);
+        } else {
+          resp.status(404).send("Not Found");
+        }
       })
       .post("/", (req, resp, next) => {
         if (req.body.handshake === true) {
