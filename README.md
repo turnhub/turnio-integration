@@ -8,39 +8,44 @@ Here's a sample integration
 
 ```javascript
 const app = new TurnIntegration(process.env.SECRET_KEY)
-  .context("Language", "table", message => ({
+  .context("Language", "table", (message) => ({
     Language: "English",
-    Confidence: "Very high"
+    Confidence: "Very high",
   }))
-  .context("A list of things", "ordered-list", message => [
+  .context("A list of things", "ordered-list", (message) => [
     "first item",
     "second item",
-    "third item"
+    "third item",
   ])
-  .suggest(message => [
+  .suggest((message) => [
     {
       type: "TEXT",
       title: "Password reset",
       body: "To reset your password click the link on the login page.",
-      confidence: 0.4
-    }
+      confidence: 0.4,
+    },
   ])
-  .action(message => [
+  .action((message) => [
     {
       description: "Change Language",
       payload: {
-        really: "yes"
+        really: "yes",
       },
       options: {
         afr_ZA: "Afrikaans",
         eng_ZA: "English",
-        zul_ZA: "Zulu"
+        zul_ZA: "Zulu",
       },
       callback: ({ message, option, payload: { really } }) => {
         console.log({ message, option, really });
-      }
-    }
+      },
+    },
   ])
+  .webhook("my-webhook", (req, resp, next) => {
+    // expose /webhook/my-webhook as a webhook handler
+    // for custom webhooks behaviour
+    resp.send({ ok: "cool" });
+  })
   .serve();
 
 module.exports = app;

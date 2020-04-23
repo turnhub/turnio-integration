@@ -39,6 +39,9 @@ const app = new TurnIntegration(process.env.SECRET)
       }
     }
   ])
+  .webhook("some-hook", (req, resp, next)) => {
+    resp.send({ok: "some-custom-response"})
+  }
   .serve();
 
 const port = process.env.PORT || 3000;
