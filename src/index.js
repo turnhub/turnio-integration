@@ -2,6 +2,7 @@ const express = require("express");
 const crypto = require("crypto");
 const bodyParser = require("body-parser");
 var debug = require("debug")("turn");
+var morgan = require("morgan");
 
 const log = (label) => {
   return (val) => {
@@ -111,6 +112,7 @@ class TurnIntegration {
       .use(app.logRequest("before verify"))
       .use(app.verifySignature)
       .use(app.logRequest("after verify"))
+      .use(morgan("short"))
       .post("/action/:parentIndex/:index", (req, resp, next) => {
         const parentIndex = parseInt(req.params.parentIndex);
         const index = parseInt(req.params.index);
