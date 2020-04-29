@@ -72,8 +72,12 @@ class TurnIntegration {
      * other usecases we can use the result of the body-parser
      * middleware that sticks the raw buffer in req.body
      */
-    if (this.secure) {
-      const body = Buffer.from(req.rawBody || req.body).toString();
+    if (req.method !== "POST") {
+      next();
+      return;
+    }
+    const body = Buffer.from(req.rawBody || req.body).toString();
+    if (this.secure && req.method === "POST") {
       const signature = req.get("X-Turn-Hook-Signature");
       const expectedSignature = this.sign(body);
       if (signature === expectedSignature) {
@@ -83,10 +87,7 @@ class TurnIntegration {
         resp.sendStatus(400).end(next);
       }
     } else {
-      if (req.rawBody || req.body) {
-        const body = Buffer.from(req.rawBody || req.body).toString();
-        req.body = JSON.parse(body);
-      }
+      req.body = JSON.parse(body);
       next();
     }
   };
@@ -116,7 +117,7 @@ class TurnIntegration {
       .use(app.verifySignature)
       .use(app.logRequest("after verify"))
       .use(morgan("short"))
-      .post("/health", (res, resp, next) => resp.status(200).send({}))
+      .get("/health", (res, resp, next) => resp.status(200).send({}))
       .post("/action/:parentIndex/:index", (req, resp, next) => {
         const parentIndex = parseInt(req.params.parentIndex);
         const index = parseInt(req.params.index);
