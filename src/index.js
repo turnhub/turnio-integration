@@ -113,6 +113,7 @@ class TurnIntegration {
       .use(app.verifySignature)
       .use(app.logRequest("after verify"))
       .use(morgan("short"))
+      .get("/health", (res, resp, next) => resp.status(200).send({}))
       .post("/action/:parentIndex/:index", (req, resp, next) => {
         const parentIndex = parseInt(req.params.parentIndex);
         const index = parseInt(req.params.index);

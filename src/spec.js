@@ -83,6 +83,12 @@ describe("turn integration app", function () {
     });
   });
 
+  describe("health", () => {
+    it("should return 200", () => {
+      request(emptyServer).get("/health").expect(200);
+    });
+  });
+
   describe("when handshaking", () => {
     it("should return the capabilities of the empty server", () => {
       const payload = { handshake: true };
