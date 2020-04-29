@@ -72,8 +72,8 @@ class TurnIntegration {
      * other usecases we can use the result of the body-parser
      * middleware that sticks the raw buffer in req.body
      */
-    const body = Buffer.from(req.rawBody || req.body).toString();
     if (this.secure) {
+      const body = Buffer.from(req.rawBody || req.body).toString();
       const signature = req.get("X-Turn-Hook-Signature");
       const expectedSignature = this.sign(body);
       if (signature === expectedSignature) {
@@ -83,7 +83,10 @@ class TurnIntegration {
         resp.sendStatus(400).end(next);
       }
     } else {
-      req.body = JSON.parse(body);
+      if (req.rawBody || req.body) {
+        const body = Buffer.from(req.rawBody || req.body).toString();
+        req.body = JSON.parse(body);
+      }
       next();
     }
   };
