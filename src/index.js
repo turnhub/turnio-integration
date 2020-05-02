@@ -18,6 +18,7 @@ class TurnIntegration {
     this.actions = [];
     this.suggestions = [];
     this.webhooks = [];
+    this.expressCallbacks = [];
     this.secure = true;
     this._verbose = false;
     this._pathPrefix = "";
@@ -109,9 +110,14 @@ class TurnIntegration {
     return this;
   };
 
+  express = (callback) => {
+    this.expressCallbacks = [...this.expressCallbacks, callback];
+    return this;
+  };
+
   serve = () => {
     const app = this;
-    return express()
+    const expressApp = express()
       .use(bodyParser.raw({ type: "application/json", inflate: true }))
       .use(app.logRequest("before verify"))
       .use(app.verifySignature)
@@ -219,6 +225,10 @@ class TurnIntegration {
           });
         }
       });
+    return app.expressCallbacks.reduce(
+      (expressApp, callback) => callback(expressApp),
+      expressApp
+    );
   };
 }
 
