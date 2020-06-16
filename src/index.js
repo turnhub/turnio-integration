@@ -119,15 +119,12 @@ class TurnIntegration {
     // send the express app through any callbacks first to allow it to set any middlewares
     // first, like for things like Sentry
 
-    const expressApp = express().use(
-      bodyParser.raw({ type: "application/json", inflate: true })
-    );
+    const expressApp = express()
+      .use(bodyParser.raw({ type: "application/json", inflate: true }))
+      .use(app.verifySignature);
 
     return app.expressCallbacks
       .reduce((expressApp, callback) => callback(expressApp), expressApp)
-      .use(app.logRequest("before verify"))
-      .use(app.verifySignature)
-      .use(app.logRequest("after verify"))
       .get("/health", (res, resp, next) => resp.status(200).send({}))
       .post("/action/:parentIndex/:index", (req, resp, next) => {
         const parentIndex = parseInt(req.params.parentIndex);
